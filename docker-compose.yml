@@ -1,0 +1,47 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    environment:
+      # The API owns the embedded Qdrant store; it holds an exclusive file lock,
+      # so no other service may mount the same directory.
+      QDRANT_PATH: /srv/data/qdrant
+      DB_PATH: /srv/data/meta.db
+      UPLOAD_DIR: /srv/data/uploads
+    volumes:
+      - rag-data:/srv/data
+      - hf-cache:/root/.cache/huggingface
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  ui:
+    build: .
+    env_file: .env
+    environment:
+      API_URL: http://api:8000
+      TOKEN_CACHE: /srv/uistate/.local_token
+    volumes:
+      - ui-state:/srv/uistate
+    command:
+      - streamlit
+      - run
+      - ui/app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.headless=true
+    ports:
+      - "8501:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  rag-data:
+  hf-cache:
+  ui-state:

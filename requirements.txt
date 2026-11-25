@@ -1,0 +1,22 @@
+# API and UI
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+streamlit==1.41.1
+httpx==0.28.1
+python-dotenv==1.0.1
+pydantic==2.10.4
+
+# Ingestion
+PyMuPDF==1.25.1
+
+# Retrieval
+sentence-transformers==3.3.1
+qdrant-client==1.12.2
+rank-bm25==0.2.2
+
+# Generation
+groq==0.13.1
+
+# Tests
+pytest==8.3.4

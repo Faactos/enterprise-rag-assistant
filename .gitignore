@@ -1,7 +1,27 @@
-node_modules/
-.DS_Store
-Thumbs.db
-*.log
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Secrets -- only .env.example is committed
 .env
 .env.*
 !.env.example
+
+# Local state: indexes, uploads, eval workspaces, cached UI token
+data/qdrant/
+data/uploads/
+data/meta.db
+data/eval-workspace/
+data/sweep-workspace/
+data/.local_token
+eval/results/*.json
+
+# Models
+.cache/
+*.log
+.DS_Store
+Thumbs.db

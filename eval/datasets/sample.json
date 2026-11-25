@@ -1,0 +1,111 @@
+{
+  "name": "acme-sample",
+  "description": "Gold set over data/corpus. Relevance is labelled per (document, page) so nDCG and recall measure whether the right *page* surfaced, not merely the right file. Three questions are deliberately unanswerable from the corpus; refusal accuracy scores whether the system declines exactly on those.",
+  "questions": [
+    {
+      "id": "q01",
+      "question": "How many days of annual leave do full-time employees get?",
+      "answerable": true,
+      "relevant": [{"doc": "acme-leave-policy.md", "page": 2}],
+      "expected_contains": ["25", "twenty-five"]
+    },
+    {
+      "id": "q02",
+      "question": "How many unused annual leave days can be carried into the next year, and by when must they be used?",
+      "answerable": true,
+      "relevant": [{"doc": "acme-leave-policy.md", "page": 2}],
+      "expected_contains": ["five", "31 March"]
+    },
+    {
+      "id": "q03",
+      "question": "When is a medical certificate required for sick leave?",
+      "answerable": true,
+      "relevant": [{"doc": "acme-leave-policy.md", "page": 3}],
+      "expected_contains": ["three", "consecutive"]
+    },
+    {
+      "id": "q04",
+      "question": "How much paid parental leave does a secondary caregiver receive?",
+      "answerable": true,
+      "relevant": [{"doc": "acme-leave-policy.md", "page": 3}],
+      "expected_contains": ["four", "weeks"]
+    },
+    {
+      "id": "q05",
+      "question": "What is the scope of services under the master services agreement?",
+      "answerable": true,
+      "relevant": [{"doc": "northwind-master-services-agreement.md", "page": 2}],
+      "expected_contains": ["Statement of Work", "development"]
+    },
+    {
+      "id": "q06",
+      "question": "Is twenty-four-hour production support included in the scope?",
+      "answerable": true,
+      "relevant": [{"doc": "northwind-master-services-agreement.md", "page": 2}],
+      "expected_contains": ["outside", "scope"]
+    },
+    {
+      "id": "q07",
+      "question": "What is the payment term for an undisputed invoice?",
+      "answerable": true,
+      "relevant": [{"doc": "northwind-master-services-agreement.md", "page": 3}],
+      "expected_contains": ["thirty", "30"]
+    },
+    {
+      "id": "q08",
+      "question": "How much notice is required to terminate the agreement for convenience?",
+      "answerable": true,
+      "relevant": [{"doc": "northwind-master-services-agreement.md", "page": 3}],
+      "expected_contains": ["sixty", "60"]
+    },
+    {
+      "id": "q09",
+      "question": "How is the supplier's aggregate liability capped?",
+      "answerable": true,
+      "relevant": [{"doc": "northwind-master-services-agreement.md", "page": 3}],
+      "expected_contains": ["twelve", "fees"]
+    },
+    {
+      "id": "q10",
+      "question": "Is multi-factor authentication required for administrative accounts?",
+      "answerable": true,
+      "relevant": [{"doc": "acme-information-security-policy.md", "page": 1}],
+      "expected_contains": ["mandatory", "multi-factor"]
+    },
+    {
+      "id": "q11",
+      "question": "How long are customer records retained after the contract ends?",
+      "answerable": true,
+      "relevant": [{"doc": "acme-information-security-policy.md", "page": 2}],
+      "expected_contains": ["seven", "years"]
+    },
+    {
+      "id": "q12",
+      "question": "Within how long must a personal data breach be notified to the supervisory authority?",
+      "answerable": true,
+      "relevant": [{"doc": "acme-information-security-policy.md", "page": 2}],
+      "expected_contains": ["72", "seventy-two"]
+    },
+    {
+      "id": "q13",
+      "question": "What is the company's policy on remote work from another country?",
+      "answerable": false,
+      "relevant": [],
+      "note": "Nothing in the corpus addresses remote work location. A system that answers this is fabricating."
+    },
+    {
+      "id": "q14",
+      "question": "What was Acme Corporation's revenue last financial year?",
+      "answerable": false,
+      "relevant": [],
+      "note": "Plausible-sounding and entirely absent -- the classic case where a model answers from pretraining."
+    },
+    {
+      "id": "q15",
+      "question": "Which third-party subprocessors does Northwind Consulting use for data hosting?",
+      "answerable": false,
+      "relevant": [],
+      "note": "The agreement mentions third-party licences but never names a subprocessor."
+    }
+  ]
+}
