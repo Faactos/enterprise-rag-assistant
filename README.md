@@ -59,7 +59,10 @@ Three independent gates keep answers traceable:
 1. **Score floor** — if no passage clears `MIN_SCORE`, the system refuses before
    calling the LLM. Weak context is the main way a RAG system fabricates.
 2. **Mandatory citations** — the prompt requires `[n]` markers; an answer with no
-   valid citation is converted into a refusal rather than returned.
+   valid citation is converted into a refusal rather than returned. Because the
+   model intermittently writes a correct answer and simply forgets the markers,
+   it gets exactly one retry against the same passages first — it can decline
+   there, but it cannot widen its evidence.
 3. **Marker validation** — citation markers outside the retrieved passage range
    are dropped, so a hallucinated `[9]` can never surface as a source link.
 
@@ -79,7 +82,16 @@ streamlit run ui/app.py                 # UI on :8501
 ```
 
 Qdrant runs in embedded file mode when `QDRANT_URL` is unset, so nothing extra
-needs to be running. First launch downloads ~200MB of models.
+needs to be running.
+
+First launch downloads ~1.2GB of models (130MB embedder, 1.1GB reranker). Both
+are loaded during API startup rather than on first request — a cold start
+belongs in the boot, where it is visible, not inside a user's first question.
+Set `USE_RERANKER=false` to skip the large one.
+
+The UI has no login screen. The bearer token is real and still required by the
+API, but for local single-user operation the UI registers one account on first
+run and caches the token under `data/.local_token`.
 
 ### Docker
 
@@ -94,6 +106,7 @@ UI at http://localhost:8501, API docs at http://localhost:8000/docs.
 
 | Method | Route | Purpose |
 |---|---|---|
+| `GET` | `/health` | Liveness plus the active provider and retrieval settings |
 | `POST` | `/auth/register` | Create a user, returns a bearer token (shown once) |
 | `POST` | `/documents` | Upload and index a PDF/TXT/MD |
 | `GET` | `/documents` | List owned and shared documents |
@@ -116,17 +129,20 @@ curl -X POST localhost:8000/ask -H "Authorization: Bearer $TOKEN" \
 
 ## Evaluation
 
-The gold set (`eval/datasets/sample.json`) labels relevant pages per question
-and includes **three deliberately unanswerable questions** — the refusal-accuracy
-metric checks the system declines exactly when it should, which a recall-only
-eval would miss entirely.
+The gold set (`eval/datasets/sample.json`) labels relevance per *(document,
+page)* across 15 questions, and includes **three deliberately unanswerable
+questions** — the refusal-accuracy metric checks the system declines exactly
+when it should, which a recall-only eval would miss entirely.
+
+Each run builds its own index in a scratch workspace, so the eval needs no
+running API and nothing to be indexed first.
 
 ```bash
 # one configuration
-python -m eval.run_eval --dataset eval/datasets/sample.json --user-id <uid>
+python -m eval.run_eval --dataset eval/datasets/sample.json --corpus data/corpus
 
 # retrieval metrics only (no LLM, no API key, no quota)
-python -m eval.run_eval --dataset ... --user-id <uid> --retrieval-only
+python -m eval.run_eval --dataset eval/datasets/sample.json --retrieval-only
 
 # full sweep
 python -m eval.sweep --dataset eval/datasets/sample.json --corpus data/corpus
@@ -153,8 +169,17 @@ changes — see `.env.example`. The important ones:
 ## Tests
 
 ```bash
-pytest tests/ -q
+pytest -q        # 60 tests, no models, no network, no API key
 ```
 
-Offline by design — chunking, RRF, citation resolution, refusal behaviour, ACL
-enforcement, and every metric are tested with stubs, no models or network.
+| File | Covers |
+|---|---|
+| `test_chunker.py` | page fidelity, overlap, and that no words are lost in a split |
+| `test_fusion.py` | RRF ranking and the rescaling that keeps `MIN_SCORE` meaningful |
+| `test_answerer.py` | all three gates, including the retry and invented markers |
+| `test_acl.py` | read scope, sharing, and that a raw token is never stored |
+| `test_metrics.py` | every metric in the toolkit, including refusal accuracy |
+
+The LLM is stubbed in the answerer tests because what is under test is the
+*gate logic* — which model outputs become answers, which become refusals, and
+what survives into the citation list.
